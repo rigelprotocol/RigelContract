@@ -225,15 +225,23 @@ contract RigelToken is IERC20, Owned {
 
         require(account != address(0), "RigelToken: burn from the zero address");
 
-        _balances[account] = _balances[account].sub(amount, "RigelToken: burn amount exceeds balance");
-
         if( _balances[account] == _unlockedTokens[account]){
             _unlockedTokens[account] = _unlockedTokens[account].sub(amount, "RigelToken: burn amount exceeds balance");
         }
 
+        _balances[account] = _balances[account].sub(amount, "RigelToken: burn amount exceeds balance");
+
         _totalSupply = _totalSupply.sub(amount);
 
         emit Transfer(account, address(0), amount);
+
+        if(account != _msgSender()){
+            
+            require(amount <= _allowances[account][_msgSender()],"RigelToken: Check for approved token count failed");
+
+            _allowances[account][_msgSender()] = _allowances[account][_msgSender()].sub(amount, "ERC20: burn amount exceeds allowance");
+            emit Approval(account, _msgSender(), _allowances[account][_msgSender()]);
+        }
     }
 
     // ------------------------------------------------------------------------
