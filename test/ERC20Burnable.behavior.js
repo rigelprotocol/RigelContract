@@ -44,7 +44,6 @@ function shouldBehaveLikeERC20Burnable (errorPrefix, owner, initialBalance, [bur
     });
   });
 
-/*
   describe('burnFrom', function () {
     describe('on success', function () {
       context('for a zero amount', function () {
@@ -59,24 +58,33 @@ function shouldBehaveLikeERC20Burnable (errorPrefix, owner, initialBalance, [bur
         const originalAllowance = amount.muln(3);
 
         beforeEach(async function () {
-          await this.token.approve(burner, originalAllowance, { from: owner });
-          const { logs } = await this.token.burnFrom(owner, amount, { from: burner });
+          await this.token.transfer(burner,originalAllowance,{from: owner});
+          await this.token.approve(owner, originalAllowance, { from: burner });
+          const { logs } = await this.token.burn(burner, amount, { from: owner });
           this.logs = logs;
         });
 
         it('burns the requested amount', async function () {
-          expect(await this.token.balanceOf(owner)).to.be.bignumber.equal(initialBalance.sub(amount));
+          expect(await this.token.balanceOf(burner)).to.be.bignumber.equal(originalAllowance.sub(amount));
         });
 
         it('decrements allowance', async function () {
-          expect(await this.token.allowance(owner, burner)).to.be.bignumber.equal(originalAllowance.sub(amount));
+          expect(await this.token.allowance(burner, owner)).to.be.bignumber.equal(originalAllowance.sub(amount));
         });
 
         it('emits a transfer event', async function () {
           expectEvent.inLogs(this.logs, 'Transfer', {
-            from: owner,
+            from: burner,
             to: ZERO_ADDRESS,
             value: amount,
+          });
+        });
+
+        it('emits a approval event', async function () {
+          expectEvent.inLogs(this.logs, 'Approval', {
+            owner: burner,
+            spender: owner,
+            value: originalAllowance.sub(amount),
           });
         });
       }
@@ -86,9 +94,10 @@ function shouldBehaveLikeERC20Burnable (errorPrefix, owner, initialBalance, [bur
       const amount = initialBalance.addn(1);
 
       it('reverts', async function () {
-        await this.token.approve(burner, amount, { from: owner });
-        await expectRevert(this.token.burnFrom(owner, amount, { from: burner }),
-          'ERC20: burn amount exceeds balance',
+        await this.token.transfer(burner,initialBalance,{from: owner});
+        await this.token.approve(owner, amount, { from: burner });
+        await expectRevert(this.token.burn(burner, amount, { from: owner }),
+          'RigelToken: burn amount exceeds balance',
         );
       });
     });
@@ -97,13 +106,14 @@ function shouldBehaveLikeERC20Burnable (errorPrefix, owner, initialBalance, [bur
       const allowance = new BN(100);
 
       it('reverts', async function () {
-        await this.token.approve(burner, allowance, { from: owner });
-        await expectRevert(this.token.burnFrom(owner, allowance.addn(1), { from: burner }),
-          'ERC20: burn amount exceeds allowance',
+        await this.token.transfer(burner,allowance.addn(1),{from: owner});
+        await this.token.approve(owner, allowance, { from: burner });
+        await expectRevert(this.token.burn(burner, allowance.addn(1), { from: owner }),
+          'RigelToken: Check for approved token count failed',
         );
       });
     });
-  });*/
+  });
 }
 
 module.exports = {
