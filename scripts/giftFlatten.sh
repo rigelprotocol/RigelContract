@@ -1,0 +1,1 @@
+truffle-flattener contracts/RigelGift.sol > flattened_contracts/RigelGift_flat.sol
